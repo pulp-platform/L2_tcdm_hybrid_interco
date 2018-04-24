@@ -76,10 +76,10 @@ module ResponseTree_BRIDGE
             //// ---------------------------------------------------------------------- ////
             //// -------               REQ ARBITRATION TREE WIRES           ----------- ////
             //// ---------------------------------------------------------------------- ////
-            logic [DATA_WIDTH-1:0]              data_r_rdata_LEVEL[N_WIRE-1:0];
-            logic                               data_r_valid_LEVEL[N_WIRE-1:0];
-            logic                               data_r_opc_LEVEL[N_WIRE-1:0];
-            logic [AUX_WIDTH-1:0]               data_r_aux_LEVEL[N_WIRE-1:0];
+            logic [N_WIRE-1:0] [DATA_WIDTH-1:0]              data_r_rdata_LEVEL;
+            logic [N_WIRE-1:0]                               data_r_valid_LEVEL;
+            logic [N_WIRE-1:0]                               data_r_opc_LEVEL;
+            logic [N_WIRE-1:0] [AUX_WIDTH-1:0]               data_r_aux_LEVEL;
 
               for(j=0; j < LOG_SLAVE; j++) // Iteration for the number of the stages minus one
                 begin : STAGE

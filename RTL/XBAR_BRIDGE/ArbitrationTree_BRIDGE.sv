@@ -110,13 +110,13 @@ module ArbitrationTree_BRIDGE
           //// ---------------------------------------------------------------------- ////
           //// -------               REQ ARBITRATION TREE WIRES           ----------- ////
           //// ---------------------------------------------------------------------- ////
-          logic [DATA_WIDTH-1:0]      data_wdata_LEVEL[N_WIRE-1:0];
-          logic [ADDR_WIDTH-1:0]      data_add_LEVEL[N_WIRE-1:0];
-          logic                       data_req_LEVEL[N_WIRE-1:0];
-          logic                       data_wen_LEVEL[N_WIRE-1:0];
-          logic [ID_WIDTH-1:0]        data_ID_LEVEL[N_WIRE-1:0];
-          logic [BE_WIDTH-1:0]        data_be_LEVEL[N_WIRE-1:0];
-          logic [AUX_WIDTH-1:0]       data_aux_LEVEL[N_WIRE-1:0];
+          logic[N_WIRE-1:0] [DATA_WIDTH-1:0]      data_wdata_LEVEL;
+          logic[N_WIRE-1:0] [ADDR_WIDTH-1:0]      data_add_LEVEL;
+          logic[N_WIRE-1:0]                       data_req_LEVEL;
+          logic[N_WIRE-1:0]                       data_wen_LEVEL;
+          logic[N_WIRE-1:0] [ID_WIDTH-1:0]        data_ID_LEVEL;
+          logic[N_WIRE-1:0] [BE_WIDTH-1:0]        data_be_LEVEL;
+          logic[N_WIRE-1:0] [AUX_WIDTH-1:0]       data_aux_LEVEL;
 
           logic                       data_gnt_LEVEL[N_WIRE-1:0];
 
