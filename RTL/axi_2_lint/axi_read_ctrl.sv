@@ -65,7 +65,8 @@ module axi_read_ctrl
     input   logic                                   grant_i,
     input   logic                                   r_valid_i,
     output  logic                                   valid_o,
-    output  logic                                   MEM_size_o
+    output  logic                                   MEM_size_o,
+    input   logic                                   error_prot_i    
 );
 
     localparam OFFSET_BIT = $clog2(AXI4_RDATA_WIDTH) - 3 ;

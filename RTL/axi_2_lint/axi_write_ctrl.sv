@@ -63,17 +63,18 @@ module axi_write_ctrl
 
 
     // Memory Port
-    output logic                                    MEM_CEN_o      ,
-    output logic                                    MEM_WEN_o      ,
-    output logic  [MEM_ADDR_WIDTH-1:0]              MEM_A_o        ,
-    output logic  [AXI4_RDATA_WIDTH-1:0]            MEM_D_o        ,
-    output logic  [AXI_NUMBYTES-1:0]                MEM_BE_o       ,
+    output logic                                    MEM_CEN_o,
+    output logic                                    MEM_WEN_o,
+    output logic  [MEM_ADDR_WIDTH-1:0]              MEM_A_o,
+    output logic  [AXI4_RDATA_WIDTH-1:0]            MEM_D_o,
+    output logic  [AXI_NUMBYTES-1:0]                MEM_BE_o,
 
-    input  logic  [AXI4_RDATA_WIDTH-1:0]            MEM_Q_i        ,
-    output logic                                    MEM_size_o     ,
+    input  logic  [AXI4_RDATA_WIDTH-1:0]            MEM_Q_i,
+    output logic                                    MEM_size_o,
 
     input   logic                                   grant_i,
-    output  logic                                   valid_o
+    output  logic                                   valid_o,
+    input   logic                                   error_prot_i
 );
 
     localparam OFFSET_BIT = $clog2(AXI4_WDATA_WIDTH) - 3 ;

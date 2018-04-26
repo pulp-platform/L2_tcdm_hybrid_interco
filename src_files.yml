@@ -7,6 +7,7 @@ soc_interconnect:
     RTL/axi_2_lint/axi_read_ctrl.sv,
     RTL/axi_2_lint/axi_write_ctrl.sv,
     RTL/axi_2_lint/lint64_to_32.sv,
+    RTL/axi_2_lint/tcdm_address_filter.sv,
     RTL/XBAR_L2/AddressDecoder_Req_L2.sv,
     RTL/XBAR_L2/AddressDecoder_Resp_L2.sv,
     RTL/XBAR_L2/ArbitrationTree_L2.sv,

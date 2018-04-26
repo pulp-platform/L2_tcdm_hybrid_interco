@@ -21,13 +21,20 @@ module axi64_2_lint32
    parameter DATA_WIDTH            = 32,
    parameter BE_WIDTH              = DATA_WIDTH/8,
    parameter ADDR_WIDTH            = 32,
-   parameter AUX_WIDTH             = 4
+   parameter AUX_WIDTH             = 4,
+
+   parameter N_RULES               = 8
 )
 (
    // AXI GLOBAL SIGNALS
    input  logic                               clk,
    input  logic                               rst_n,
    input  logic                               test_en_i,
+
+   input  logic                               supervisor_mode_i,
+   input  logic                               mpu_enable_i,
+   input  logic [N_RULES-1:0][31:0]           axi_mpu_rules_i,
+   output logic                               axi_mpu_error_o,
 
    // AXI INTERFACE
    input  logic [AXI_ADDR_WIDTH-1:0]          AW_ADDR_i,
@@ -166,24 +173,27 @@ module axi64_2_lint32
    logic                               R_READY_int;
 
 
-   logic                               data_W_req_int;
-   logic                               data_W_gnt_int;
-   logic [63:0]                        data_W_wdata_int;
-   logic [31:0]                        data_W_add_int;
-   logic                               data_W_wen_int;
-   logic [7:0]                         data_W_be_int;
-   logic                               data_W_r_valid_int;
-   logic [63:0]                        data_W_r_rdata_int;
+   logic                               MPU_data_W_req_int,     data_W_req_int;
+   logic                               MPU_data_W_gnt_int,     data_W_gnt_int;
+   logic [63:0]                        MPU_data_W_wdata_int,   data_W_wdata_int;
+   logic [31:0]                        MPU_data_W_add_int,     data_W_add_int;
+   logic                               MPU_data_W_wen_int,     data_W_wen_int;
+   logic [7:0]                         MPU_data_W_be_int,      data_W_be_int;
+   logic                               MPU_data_W_r_valid_int, data_W_r_valid_int;
+   logic [63:0]                        MPU_data_W_r_rdata_int, data_W_r_rdata_int;
 
-   logic                               data_R_req_int;
-   logic                               data_R_gnt_int;
-   logic [63:0]                        data_R_wdata_int;
-   logic [31:0]                        data_R_add_int;
-   logic                               data_R_wen_int;
-   logic [7:0]                         data_R_be_int;
-   logic                               data_R_r_valid_int;
-   logic [63:0]                        data_R_r_rdata_int;
+   logic                               MPU_data_R_req_int,      data_R_req_int;
+   logic                               MPU_data_R_gnt_int,      data_R_gnt_int;
+   logic [63:0]                        MPU_data_R_wdata_int,    data_R_wdata_int;
+   logic [31:0]                        MPU_data_R_add_int,      data_R_add_int;
+   logic                               MPU_data_R_wen_int,      data_R_wen_int;
+   logic [7:0]                         MPU_data_R_be_int,       data_R_be_int;
+   logic                               MPU_data_R_r_valid_int,  data_R_r_valid_int;
+   logic [63:0]                        MPU_data_R_r_rdata_int,  data_R_r_rdata_int;
 
+   logic axi_mpu_error_W, axi_mpu_error_R;
+
+   assign axi_mpu_error_o = axi_mpu_error_W | axi_mpu_error_R;
 
    assign data_R_aux_o = '0;
    assign data_W_aux_o = '0;
@@ -393,6 +403,7 @@ module axi64_2_lint32
 
 
 logic data_W_size_int, data_R_size_int;
+logic MPU_data_W_size_int, MPU_data_R_size_int;
 
 
    axi_write_ctrl
@@ -407,78 +418,131 @@ logic data_W_size_int, data_R_size_int;
    )
    i_axi_write_ctrl
    (
-      .clk        (clk),
-      .rst_n      (rst_n),
+      .clk          ( clk            ),
+      .rst_n        ( rst_n          ),
 
       //AXI Write address bus -------------------------------------
-      .AWID_i     ( AW_ID_int     ),
-      .AWADDR_i   ( AW_ADDR_int   ),
-      .AWLEN_i    ( AW_LEN_int    ),
-      .AWSIZE_i   ( AW_SIZE_int   ),
-      .AWBURST_i  ( AW_BURST_int  ),
-      .AWLOCK_i   ( AW_LOCK_int   ),
-      .AWCACHE_i  ( AW_CACHE_int  ),
-      .AWPROT_i   ( AW_PROT_int   ),
-      .AWREGION_i ( AW_REGION_int ),
-      .AWUSER_i   ( AW_USER_int   ),
-      .AWQOS_i    ( AW_QOS_int    ),
-      .AWVALID_i  ( AW_VALID_int  ),
-      .AWREADY_o  ( AW_READY_int  ),
+      .AWID_i       ( AW_ID_int        ),
+      .AWADDR_i     ( AW_ADDR_int      ),
+      .AWLEN_i      ( AW_LEN_int       ),
+      .AWSIZE_i     ( AW_SIZE_int      ),
+      .AWBURST_i    ( AW_BURST_int     ),
+      .AWLOCK_i     ( AW_LOCK_int      ),
+      .AWCACHE_i    ( AW_CACHE_int     ),
+      .AWPROT_i     ( AW_PROT_int      ),
+      .AWREGION_i   ( AW_REGION_int    ),
+      .AWUSER_i     ( AW_USER_int      ),
+      .AWQOS_i      ( AW_QOS_int       ),
+      .AWVALID_i    ( AW_VALID_int     ),
+      .AWREADY_o    ( AW_READY_int     ),
       // ---------------------------------------------------------
 
-      //AXI write data bus -------------- // USED// -------------
-      .WDATA_i     ( W_DATA_int   ),
-      .WSTRB_i     ( W_STRB_int   ),
-      .WLAST_i     ( W_LAST_int   ),
-      .WUSER_i     ( W_USER_int   ),
-      .WVALID_i    ( W_VALID_int  ),
-      .WREADY_o    ( W_READY_int  ),
+      //AXI write  data bus -------------- // USED// -------------
+      .WDATA_i      ( W_DATA_int       ),
+      .WSTRB_i      ( W_STRB_int       ),
+      .WLAST_i      ( W_LAST_int       ),
+      .WUSER_i      ( W_USER_int       ),
+      .WVALID_i     ( W_VALID_int      ),
+      .WREADY_o     ( W_READY_int      ),
 
       //AXI write response bus -------------- // USED// ----------
-      .BID_o      ( B_ID_int      ),
-      .BRESP_o    ( B_RESP_int    ),
-      .BVALID_o   ( B_VALID_int   ),
-      .BUSER_o    ( B_USER_int    ),
-      .BREADY_i   ( B_READY_int   ),
+      .BID_o        ( B_ID_int         ),
+      .BRESP_o      ( B_RESP_int       ),
+      .BVALID_o     ( B_VALID_int      ),
+      .BUSER_o      ( B_USER_int       ),
+      .BREADY_i     ( B_READY_int      ),
 
       // Memory Port
-      .MEM_CEN_o  (                  ),
-      .MEM_WEN_o  ( data_W_wen_int   ),
-      .MEM_A_o    ( data_W_add_int   ),
-      .MEM_D_o    ( data_W_wdata_int ),
-      .MEM_BE_o   ( data_W_be_int    ),
-      .MEM_Q_i    ( '0               ),
-      .MEM_size_o ( data_W_size_int  ),
+      .MEM_CEN_o    (                  ),
+      .MEM_WEN_o    ( data_W_wen_int   ),
+      .MEM_A_o      ( data_W_add_int   ),
+      .MEM_D_o      ( data_W_wdata_int ),
+      .MEM_BE_o     ( data_W_be_int    ),
+      .MEM_Q_i      ( '0               ),
+      .MEM_size_o   ( data_W_size_int  ),
 
-      .grant_i    ( data_W_gnt_int   ),
-      .valid_o    ( data_W_req_int   )
+      .grant_i      ( data_W_gnt_int   ),
+      .valid_o      ( data_W_req_int   ),
+      .error_prot_i ( axi_mpu_error_W  )
    );
 
 
+
+   tcdm_address_filter
+   #(
+      .N_RULES         ( N_RULES        ), //= 8,
+      .DATA_WIDTH      ( AXI_DATA_WIDTH ), //= 32,
+      .ADDR_WIDTH      ( AXI_ADDR_WIDTH ), //= 32,
+      .BE_WIDTH        ( AXI_STRB_WIDTH ), //= DATA_WIDTH/8,
+
+      .L2_BASE         ( 32'h1C00_0000  ), //= 32'h1C00_0000,
+      .ROM_BASE        ( 32'h1A00_0000  ), //= 32'h1A00_0000,
+      .APB_BASE        ( 32'h1A10_0000  ), //= 32'h1A10_0000,
+      .MRAM_BASE       ( 32'h1D00_0000  ), //= 32'h1D00_0000,
+      .CLUSTER_BASE    ( 32'h1000_0000  ), //= 32'h1000_0000,
+
+      .LSB_CHECK       ( 6              ), //= 6,
+      .MSB_CHECK       ( 23             ), //= 23,
+      .ENABLE_ALIAS_L2 ( "FALSE"        ) //= "FALSE"   
+   )
+   W_tcdm_address_filter_i
+   (
+       .clk               ( clk                    ),
+       .rst_n             ( rst_n                  ),
+
+       .supervisor_mode_i ( supervisor_mode_i      ),
+       .filter_en_i       ( mpu_enable_i           ),
+
+       .req_i             ( data_W_req_int         ),
+       .add_i             ( data_W_add_int         ),
+       .wen_i             ( data_W_wen_int         ),
+       .wdata_i           ( data_W_wdata_int       ),
+       .be_i              ( data_W_be_int          ),
+       .size_i            ( data_W_size_int        ),
+       .gnt_o             ( data_W_gnt_int         ),
+       .r_rdata_o         ( data_W_r_rdata_int     ),
+       .r_valid_o         ( data_W_r_valid_int     ),
+
+       .req_o             ( MPU_data_W_req_int     ),
+       .add_o             ( MPU_data_W_add_int     ),
+       .wen_o             ( MPU_data_W_wen_int     ),
+       .wdata_o           ( MPU_data_W_wdata_int   ),
+       .be_o              ( MPU_data_W_be_int      ),
+       .size_o            ( MPU_data_W_size_int    ),
+       .gnt_i             ( MPU_data_W_gnt_int     ),
+       .r_rdata_i         ( MPU_data_W_r_rdata_int ),
+       .r_valid_i         ( MPU_data_W_r_valid_int ),
+
+       .RULES_i           ( axi_mpu_rules_i        ),
+       .error_o           ( axi_mpu_error_W        )
+   );
+
+    
+
    lint64_to_32 parallel_lint_write
    (
-      .clk              ( clk              ),
-      .rst_n            ( rst_n            ),
+      .clk              ( clk                ),
+      .rst_n            ( rst_n              ),
       // LINT Interface - WRITE Request
-      .data_req_i       ( data_W_req_int   ),
-      .data_gnt_o       ( data_W_gnt_int   ),
-      .data_wdata_i     ( data_W_wdata_int ),
-      .data_add_i       ( data_W_add_int   ),
-      .data_wen_i       ( data_W_wen_int   ),
-      .data_be_i        ( data_W_be_int    ),
-      .data_size_i      ( data_W_size_int  ),
-      .data_r_valid_o   ( data_W_r_valid_int ),
-      .data_r_rdata_o   ( data_W_r_rdata_int ),
+      .data_req_i       ( MPU_data_W_req_int     ),
+      .data_gnt_o       ( MPU_data_W_gnt_int     ),
+      .data_wdata_i     ( MPU_data_W_wdata_int   ),
+      .data_add_i       ( MPU_data_W_add_int     ),
+      .data_wen_i       ( MPU_data_W_wen_int     ),
+      .data_be_i        ( MPU_data_W_be_int      ),
+      .data_size_i      ( MPU_data_W_size_int    ),
+      .data_r_valid_o   ( MPU_data_W_r_valid_int ),
+      .data_r_rdata_o   ( MPU_data_W_r_rdata_int ),
 
       // LINT Interface - WRITE Request
-      .data_req_o       ( data_W_req_o      ),
-      .data_gnt_i       ( data_W_gnt_i      ),
-      .data_wdata_o     ( data_W_wdata_o    ),
-      .data_add_o       ( data_W_add_o      ),
-      .data_wen_o       ( data_W_wen_o      ),
-      .data_be_o        ( data_W_be_o       ),
-      .data_r_valid_i   ( data_W_r_valid_i  ),
-      .data_r_rdata_i   ( data_W_r_rdata_i  )
+      .data_req_o       ( data_W_req_o       ),
+      .data_gnt_i       ( data_W_gnt_i       ),
+      .data_wdata_o     ( data_W_wdata_o     ),
+      .data_add_o       ( data_W_add_o       ),
+      .data_wen_o       ( data_W_wen_o       ),
+      .data_be_o        ( data_W_be_o        ),
+      .data_r_valid_i   ( data_W_r_valid_i   ),
+      .data_r_rdata_i   ( data_W_r_rdata_i   )
    );
 
 
@@ -532,8 +596,62 @@ logic data_W_size_int, data_R_size_int;
       .grant_i             ( data_R_gnt_int    ),
       .valid_o             ( data_R_req_int    ),
       .r_valid_i           ( data_R_r_valid_int),
-      .MEM_size_o          ( data_R_size_int   )
+      .MEM_size_o          ( data_R_size_int   ),
+      .error_prot_i        ( axi_mpu_error_R   )
    );
+
+
+
+
+   tcdm_address_filter
+   #(
+      .N_RULES         ( N_RULES        ), //= 8,
+      .DATA_WIDTH      ( AXI_DATA_WIDTH ), //= 32,
+      .ADDR_WIDTH      ( AXI_ADDR_WIDTH ), //= 32,
+      .BE_WIDTH        ( AXI_STRB_WIDTH ), //= DATA_WIDTH/8,
+
+      .L2_BASE         ( 32'h1C00_0000  ), //= 32'h1C00_0000,
+      .ROM_BASE        ( 32'h1A00_0000  ), //= 32'h1A00_0000,
+      .APB_BASE        ( 32'h1A10_0000  ), //= 32'h1A10_0000,
+      .MRAM_BASE       ( 32'h1D00_0000  ), //= 32'h1D00_0000,
+      .CLUSTER_BASE    ( 32'h1000_0000  ), //= 32'h1000_0000,
+
+      .LSB_CHECK       ( 6              ), //= 6,
+      .MSB_CHECK       ( 23             ), //= 23,
+      .ENABLE_ALIAS_L2 ( "FALSE"        ) //= "FALSE"   
+   )
+   R_tcdm_address_filter_i
+   (
+       .clk               ( clk                    ),
+       .rst_n             ( rst_n                  ),
+
+       .supervisor_mode_i ( supervisor_mode_i      ),
+       .filter_en_i       ( mpu_enable_i           ),
+
+       .req_i             ( data_R_req_int         ),
+       .add_i             ( data_R_add_int         ),
+       .wen_i             ( data_R_wen_int         ),
+       .wdata_i           ( data_R_wdata_int       ),
+       .be_i              ( data_R_be_int          ),
+       .size_i            ( data_R_size_int        ),
+       .gnt_o             ( data_R_gnt_int         ),
+       .r_rdata_o         ( data_R_r_rdata_int     ),
+       .r_valid_o         ( data_R_r_valid_int     ),
+
+       .req_o             ( MPU_data_R_req_int     ),
+       .add_o             ( MPU_data_R_add_int     ),
+       .wen_o             ( MPU_data_R_wen_int     ),
+       .wdata_o           ( MPU_data_R_wdata_int   ),
+       .be_o              ( MPU_data_R_be_int      ),
+       .size_o            ( MPU_data_R_size_int    ),
+       .gnt_i             ( MPU_data_R_gnt_int     ),
+       .r_rdata_i         ( MPU_data_R_r_rdata_int ),
+       .r_valid_i         ( MPU_data_R_r_valid_int ),
+
+       .RULES_i           ( axi_mpu_rules_i        ),
+       .error_o           ( axi_mpu_error_R        )
+   );
+
 
 
    lint64_to_32 parallel_lint_read
@@ -541,15 +659,15 @@ logic data_W_size_int, data_R_size_int;
       .clk              ( clk              ),
       .rst_n            ( rst_n            ),
       // LINT Interface - WRITE Request
-      .data_req_i       ( data_R_req_int   ),
-      .data_gnt_o       ( data_R_gnt_int   ),
-      .data_wdata_i     ( data_R_wdata_int ),
-      .data_add_i       ( data_R_add_int   ),
-      .data_wen_i       ( data_R_wen_int   ),
-      .data_be_i        ( data_R_be_int    ),
-      .data_r_valid_o   ( data_R_r_valid_int ),
-      .data_r_rdata_o   ( data_R_r_rdata_int ),
-      .data_size_i      ( data_R_size_int  ),
+      .data_req_i       ( MPU_data_R_req_int   ),
+      .data_gnt_o       ( MPU_data_R_gnt_int   ),
+      .data_wdata_i     ( MPU_data_R_wdata_int ),
+      .data_add_i       ( MPU_data_R_add_int   ),
+      .data_wen_i       ( MPU_data_R_wen_int   ),
+      .data_be_i        ( MPU_data_R_be_int    ),
+      .data_r_valid_o   ( MPU_data_R_r_valid_int ),
+      .data_r_rdata_o   ( MPU_data_R_r_rdata_int ),
+      .data_size_i      ( MPU_data_R_size_int  ),
 
       // LINT Interface - WRITE Request
       .data_req_o       ( data_R_req_o   ),
