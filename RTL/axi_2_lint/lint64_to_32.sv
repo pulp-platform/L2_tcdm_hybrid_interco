@@ -92,7 +92,7 @@ module lint64_to_32
 
       // default values
       data_req_o     = '0;
-      data_add_o     = (data_size_i) ? { {data_add_i[31:3],3'b000}+4,  {data_add_i[31:3],3'b000} }   :    { data_add_i,  data_add_i };;
+      data_add_o     = (data_size_i) ? { {data_add_i[31:3],3'b100},  {data_add_i[31:3],3'b000} }   :    { data_add_i,  data_add_i };;
       data_wen_o     = { data_wen_i,    data_wen_i };
       data_r_valid_o = '0;
 
