@@ -8,6 +8,8 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
+`include "soc_bus_defines.sv"
+
 module axi64_2_lint32
 #(
    parameter AXI_ADDR_WIDTH        = 32,
@@ -475,11 +477,11 @@ logic MPU_data_W_size_int, MPU_data_R_size_int;
       .ADDR_WIDTH      ( AXI_ADDR_WIDTH ), //= 32,
       .BE_WIDTH        ( AXI_STRB_WIDTH ), //= DATA_WIDTH/8,
 
-      .L2_BASE         ( 32'h1C00_0000  ), //= 32'h1C00_0000,
-      .ROM_BASE        ( 32'h1A00_0000  ), //= 32'h1A00_0000,
-      .APB_BASE        ( 32'h1A10_0000  ), //= 32'h1A10_0000,
-      .MRAM_BASE       ( 32'h1D00_0000  ), //= 32'h1D00_0000,
-      .CLUSTER_BASE    ( 32'h1000_0000  ), //= 32'h1000_0000,
+      .L2_BASE         ( `SOC_L2_PRIV0_START_ADDR  ), //= `SOC_L2_PRIV0_START_ADDR,
+      .ROM_BASE        ( `SOC_ROM_START_ADDR  ), //= `SOC_ROM_START_ADDR,
+      .APB_BASE        ( `SOC_APB_START_ADDR  ), //= `SOC_APB_START_ADDR,
+      .MRAM_BASE       ( `SOC_MRAM_START_ADDR  ), //= `SOC_MRAM_START_ADDR,
+      .CLUSTER_BASE    ( `CLUSTER_DATA_START_ADDR  ), //= `CLUSTER_DATA_START_ADDR,
 
       .LSB_CHECK       ( 6              ), //= 6,
       .MSB_CHECK       ( 23             ), //= 23,
@@ -610,11 +612,11 @@ logic MPU_data_W_size_int, MPU_data_R_size_int;
       .ADDR_WIDTH      ( AXI_ADDR_WIDTH ), //= 32,
       .BE_WIDTH        ( AXI_STRB_WIDTH ), //= DATA_WIDTH/8,
 
-      .L2_BASE         ( 32'h1C00_0000  ), //= 32'h1C00_0000,
-      .ROM_BASE        ( 32'h1A00_0000  ), //= 32'h1A00_0000,
-      .APB_BASE        ( 32'h1A10_0000  ), //= 32'h1A10_0000,
-      .MRAM_BASE       ( 32'h1D00_0000  ), //= 32'h1D00_0000,
-      .CLUSTER_BASE    ( 32'h1000_0000  ), //= 32'h1000_0000,
+      .L2_BASE         ( `SOC_L2_PRIV0_START_ADDR  ), //= `SOC_L2_PRIV0_START_ADDR,
+      .ROM_BASE        ( `SOC_ROM_START_ADDR  ), //= `SOC_ROM_START_ADDR,
+      .APB_BASE        ( `SOC_APB_START_ADDR  ), //= `SOC_APB_START_ADDR,
+      .MRAM_BASE       ( `SOC_MRAM_START_ADDR  ), //= `SOC_MRAM_START_ADDR,
+      .CLUSTER_BASE    ( `CLUSTER_DATA_START_ADDR  ), //= `CLUSTER_DATA_START_ADDR,
 
       .LSB_CHECK       ( 6              ), //= 6,
       .MSB_CHECK       ( 23             ), //= 23,

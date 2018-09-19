@@ -1,4 +1,7 @@
 soc_interconnect:
+  incdirs: [
+    ../../rtl/includes,
+  ]
   files: [
     RTL/l2_tcdm_demux.sv,
     RTL/lint_2_apb.sv,
