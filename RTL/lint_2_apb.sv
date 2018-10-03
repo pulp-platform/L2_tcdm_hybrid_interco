@@ -49,7 +49,7 @@ module lint_2_apb
     input  logic                      master_PSLVERR
 );
 
-   enum logic [1:0] {IDLE, WAIT_PREADY, DISPATCH_RDATA } CS,NS;
+   enum logic [1:0] {IDLE, SETUP, WAIT_PREADY, DISPATCH_RDATA } CS,NS;
 
    logic                      sample_req_info;
    `ifdef REG_OUT
@@ -137,14 +137,26 @@ module lint_2_apb
          if(data_req_i)
          begin
             sample_req_info = 1'b1;
-            NS = WAIT_PREADY;
+            NS = SETUP;
          end
          else
          begin
             NS = IDLE;
          end
       end
+      
+      SETUP:
+      begin
+        master_PSEL    = 1'b1;
+        master_PENABLE = 1'b0;
 
+      `ifdef REG_OUT
+         data_r_valid_NS = 1'b0;
+      `endif
+	 
+         NS = WAIT_PREADY;
+	 
+      end
 
       WAIT_PREADY:
       begin
