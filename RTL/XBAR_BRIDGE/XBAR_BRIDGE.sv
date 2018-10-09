@@ -82,6 +82,7 @@ module XBAR_BRIDGE
 
     logic [N_CH0+N_CH1-1:0][N_SLAVE-1:0]             destination_OH;
 
+`ifdef PRINT_START_END_ADDR
     //synopsys translate_off
     initial
     begin
@@ -89,6 +90,7 @@ module XBAR_BRIDGE
          $display("START_ADDR[1] = 0x%8h; END_ADDR[1] = 0X%8h", START_ADDR[1], END_ADDR[1] );
     end
     //synopsys translate_on
+`endif // PRINT_START_END_ADDR
 
 
     genvar j,k;
