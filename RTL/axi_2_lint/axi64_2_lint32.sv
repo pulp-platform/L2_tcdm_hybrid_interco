@@ -484,7 +484,7 @@ logic MPU_data_W_size_int, MPU_data_R_size_int;
       .CLUSTER_BASE    ( `CLUSTER_DATA_START_ADDR  ), //= `CLUSTER_DATA_START_ADDR,
 
       .LSB_CHECK       ( 6              ), //= 6,
-      .MSB_CHECK       ( 23             ), //= 23,
+      .MSB_CHECK       ( 31             ), //= 23,
       .ENABLE_ALIAS_L2 ( "FALSE"        ) //= "FALSE"   
    )
    W_tcdm_address_filter_i
@@ -619,7 +619,7 @@ logic MPU_data_W_size_int, MPU_data_R_size_int;
       .CLUSTER_BASE    ( `CLUSTER_DATA_START_ADDR  ), //= `CLUSTER_DATA_START_ADDR,
 
       .LSB_CHECK       ( 6              ), //= 6,
-      .MSB_CHECK       ( 23             ), //= 23,
+      .MSB_CHECK       ( 31             ), //= 23,
       .ENABLE_ALIAS_L2 ( "FALSE"        ) //= "FALSE"   
    )
    R_tcdm_address_filter_i

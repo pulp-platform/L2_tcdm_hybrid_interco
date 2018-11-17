@@ -18,7 +18,7 @@ module tcdm_address_filter
    parameter                CLUSTER_BASE   = 32'h1000_0000,
 
    parameter                LSB_CHECK      = 6,
-   parameter                MSB_CHECK      = 23,
+   parameter                MSB_CHECK      = 31,
    parameter                ENABLE_ALIAS_L2 = "FALSE"   
 )
 (
