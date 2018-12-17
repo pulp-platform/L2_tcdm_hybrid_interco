@@ -1,8 +1,4 @@
-
-`define L2_SPACE      2'b00
-`define MRAM_SPACE    2'b01
-`define ROM_SPACE     2'b10
-`define APB_SPACE     2'b11
+`include "ulpsoc_defines.sv"
 
 module tcdm_address_filter
 #(
@@ -14,7 +10,6 @@ module tcdm_address_filter
    parameter                L2_BASE        = 32'h1C00_0000,
    parameter                ROM_BASE       = 32'h1A00_0000,
    parameter                APB_BASE       = 32'h1A10_0000,
-   parameter                MRAM_BASE      = 32'h1D00_0000,
    parameter                CLUSTER_BASE   = 32'h1000_0000,
 
    parameter                LSB_CHECK      = 6,
@@ -104,10 +99,10 @@ module tcdm_address_filter
                   BASE_end[i]   = L2_BASE  +  {BASE[i],6'h00} + {SIZE[i],6'h00};
                 end
 
-                `MRAM_SPACE:
+                `CLUSTER_SPACE:
                 begin 
-                  BASE_start[i] = MRAM_BASE   +  {BASE[i],6'h00} ;
-                  BASE_end[i]   = MRAM_BASE   +  {BASE[i],6'h00} + {SIZE[i],6'h00};
+                  BASE_start[i] = CLUSTER_BASE   +  {BASE[i],6'h00} ;
+                  BASE_end[i]   = CLUSTER_BASE   +  {BASE[i],6'h00} + {SIZE[i],6'h00};
                 end
 
                 `ROM_SPACE:
