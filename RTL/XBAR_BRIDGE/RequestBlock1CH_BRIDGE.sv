@@ -125,13 +125,13 @@ module RequestBlock1CH_BRIDGE
         begin : POLY_CH0
             ArbitrationTree_BRIDGE
             #(
-                .ADDR_WIDTH  ( ADDR_WIDTH ),
-                .ID_WIDTH    ( ID_WIDTH   ),
-                .N_MASTER    ( N_CH0      ),
-                .DATA_WIDTH  ( DATA_WIDTH ),
-                .BE_WIDTH    ( BE_WIDTH   ),
-                .AUX_WIDTH   ( AUX_WIDTH  ),
-                .MAX_COUNT   ( N_CH0-1    )
+                .ADDR_WIDTH  ( ADDR_WIDTH       ),
+                .ID_WIDTH    ( ID_WIDTH         ),
+                .N_MASTER    ( 2**$clog2(N_CH0) ),
+                .DATA_WIDTH  ( DATA_WIDTH       ),
+                .BE_WIDTH    ( BE_WIDTH         ),
+                .AUX_WIDTH   ( AUX_WIDTH        ),
+                .MAX_COUNT   ( N_CH0-1          )
             )
             i_ArbitrationTree_BRIDGE
             (
