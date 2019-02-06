@@ -41,6 +41,7 @@ module XBAR_BRIDGE
     // ---------------- MM_SIDE (Interleaved) --------------------------
     // Req --> to Mem
     output  logic [N_SLAVE-1:0]                            data_req_o,                // Data request
+    output  logic [N_SLAVE-1:0]                            data_ts_set_o,             // Identify a current TS
     output  logic [N_SLAVE-1:0][ADDR_WIDTH-1:0]            data_add_o,                // Data request Address
     output  logic [N_SLAVE-1:0]                            data_wen_o,                // Data request type : 0--> Store, 1 --> Load
     output  logic [N_SLAVE-1:0][DATA_WIDTH-1:0]            data_wdata_o,              // Data request Wrire data
@@ -59,8 +60,8 @@ module XBAR_BRIDGE
     input  logic                                           clk,                       // Clock
     input  logic                                           rst_n,                      // Active Low Reset
 
-    input  logic [N_SLAVE-1:0][ADDR_WIDTH-1:0]             START_ADDR,
-    input  logic [N_SLAVE-1:0][ADDR_WIDTH-1:0]             END_ADDR
+    input  logic [N_SLAVE+1:0][ADDR_WIDTH-1:0]             START_ADDR,
+    input  logic [N_SLAVE+1:0][ADDR_WIDTH-1:0]             END_ADDR
 );
 
     // localparam logic [ADDR_WIDTH-1:0] START_ADDR[N_SLAVE-1:0] = {32'h0000_0000, 32'h0010_0000, 32'h1000_0000};
@@ -80,7 +81,10 @@ module XBAR_BRIDGE
     logic [N_CH0+N_CH1-1:0]                          data_req_to_MEM[N_SLAVE-1:0];
     logic [N_SLAVE-1:0]                              data_gnt_to_MASTER[N_CH0+N_CH1-1:0];
 
-    logic [N_CH0+N_CH1-1:0][N_SLAVE-1:0]             destination_OH;
+    logic [N_CH0+N_CH1-1:0][N_SLAVE+1:0]             destination_OH;
+    logic [N_CH0+N_CH1-1:0][N_SLAVE-1:0]             destination_OH_merged;
+    logic [N_CH0+N_CH1-1:0]                          is_test_and_set;
+
 
 `ifdef PRINT_START_END_ADDR
     //synopsys translate_off
@@ -104,7 +108,7 @@ module XBAR_BRIDGE
             begin
                   destination_OH[k] = '0;
 
-                  for (int unsigned x=0; x<N_SLAVE; x++)
+                  for (int unsigned x=0; x<N_SLAVE+2; x++)
                   begin
                      if( (data_add_i[k] >= START_ADDR[x]) && (data_add_i[k] < END_ADDR[x]) )
                      begin
@@ -112,6 +116,22 @@ module XBAR_BRIDGE
                         destination_OH[k][x] = 1'b1;
                      end
                   end
+
+                  for (int unsigned x=0; x<N_SLAVE; x++)
+                  begin
+                      if(x>2)
+                      begin
+                        destination_OH_merged[k][x] = destination_OH[k][x] | destination_OH[k][x+2];
+                      end
+                      else
+                      begin
+                        destination_OH_merged[k][x] = destination_OH[k][x];
+                      end
+                  end
+
+
+                  is_test_and_set[k] = |destination_OH[k][6:5];
+
             end
 
 
@@ -130,39 +150,43 @@ module XBAR_BRIDGE
            begin : CH0_CH1
               RequestBlock2CH_BRIDGE
               #(
-                  .ADDR_WIDTH         ( ADDR_WIDTH     ),
-                  .N_CH0              ( N_CH0          ),
-                  .N_CH1              ( N_CH1          ),
-                  .ID_WIDTH           ( ID_WIDTH       ),
-                  .DATA_WIDTH         ( DATA_WIDTH     ),
-                  .AUX_WIDTH          ( AUX_WIDTH      ),
-                  .BE_WIDTH           ( BE_WIDTH       )
+                  .ADDR_WIDTH         ( ADDR_WIDTH                  ),
+                  .N_CH0              ( N_CH0                       ),
+                  .N_CH1              ( N_CH1                       ),
+                  .ID_WIDTH           ( ID_WIDTH                    ),
+                  .DATA_WIDTH         ( DATA_WIDTH                  ),
+                  .AUX_WIDTH          ( AUX_WIDTH                   ),
+                  .BE_WIDTH           ( BE_WIDTH                    ),
+                  .USE_TEST_SET       (  (j > 2) ? "TRUE" : "FALSE" )
               )
               i_RequestBlock2CH_BRIDGE
               (
                   // CHANNEL CH0 --> (example: Used for xP70s)
-                  .data_req_CH0_i     ( data_req_to_MEM[j][N_CH0-1:0]                 ),
-                  .data_add_CH0_i     ( data_add_i[N_CH0-1:0]                         ),
-                  .data_wen_CH0_i     ( data_wen_i[N_CH0-1:0]                         ),
-                  .data_wdata_CH0_i   ( data_wdata_i[N_CH0-1:0]                       ),
-                  .data_be_CH0_i      ( data_be_i[N_CH0-1:0]                          ),
-                  .data_ID_CH0_i      ( data_ID[N_CH0-1:0]                            ),
-                  .data_aux_CH0_i     ( data_aux_i[N_CH0-1:0]                         ),
-                  .data_gnt_CH0_o     ( data_gnt_from_MEM[j][N_CH0-1:0]               ),
+                  .data_req_CH0_i         ( data_req_to_MEM[j][N_CH0-1:0]                 ),
+                  .data_add_CH0_i         ( data_add_i[N_CH0-1:0]                         ),
+                  .is_test_and_set_CH0_i  ( is_test_and_set[N_CH0-1:0]                    ),
+                  .data_wen_CH0_i         ( data_wen_i[N_CH0-1:0]                         ),
+                  .data_wdata_CH0_i       ( data_wdata_i[N_CH0-1:0]                       ),
+                  .data_be_CH0_i          ( data_be_i[N_CH0-1:0]                          ),
+                  .data_ID_CH0_i          ( data_ID[N_CH0-1:0]                            ),
+                  .data_aux_CH0_i         ( data_aux_i[N_CH0-1:0]                         ),
+                  .data_gnt_CH0_o         ( data_gnt_from_MEM[j][N_CH0-1:0]               ),
 
                   // CHANNEL CH1 --> (example: Used for DMAs )
-                  .data_req_CH1_i     ( data_req_to_MEM[j][N_CH1+N_CH0-1:N_CH0]       ),
-                  .data_add_CH1_i     ( data_add_i[N_CH1+N_CH0-1:N_CH0]               ),
-                  .data_wen_CH1_i     ( data_wen_i[N_CH1+N_CH0-1:N_CH0]               ),
-                  .data_wdata_CH1_i   ( data_wdata_i[N_CH1+N_CH0-1:N_CH0]             ),
-                  .data_be_CH1_i      ( data_be_i[N_CH1+N_CH0-1:N_CH0]                ),
-                  .data_ID_CH1_i      ( data_ID[N_CH1+N_CH0-1:N_CH0]                  ),
-                  .data_aux_CH1_i     ( data_aux_i[N_CH1+N_CH0-1:N_CH0]               ),
-                  .data_gnt_CH1_o     ( data_gnt_from_MEM[j][N_CH1+N_CH0-1:N_CH0]     ),
+                  .data_req_CH1_i         ( data_req_to_MEM[j][N_CH1+N_CH0-1:N_CH0]       ),
+                  .data_add_CH1_i         ( data_add_i[N_CH1+N_CH0-1:N_CH0]               ),
+                  .is_test_and_set_CH1_i  ( is_test_and_set[N_CH1+N_CH0-1:N_CH0]          ),
+                  .data_wen_CH1_i         ( data_wen_i[N_CH1+N_CH0-1:N_CH0]               ),
+                  .data_wdata_CH1_i       ( data_wdata_i[N_CH1+N_CH0-1:N_CH0]             ),
+                  .data_be_CH1_i          ( data_be_i[N_CH1+N_CH0-1:N_CH0]                ),
+                  .data_ID_CH1_i          ( data_ID[N_CH1+N_CH0-1:N_CH0]                  ),
+                  .data_aux_CH1_i         ( data_aux_i[N_CH1+N_CH0-1:N_CH0]               ),
+                  .data_gnt_CH1_o         ( data_gnt_from_MEM[j][N_CH1+N_CH0-1:N_CH0]     ),
 
                   // -----------------             MEMORY                    -------------------
                   // ---------------- RequestBlock OUTPUT (Connected to MEMORY) ----------------
                   .data_req_o         ( data_req_o[j]                                 ),
+                  .data_ts_set_o      ( data_ts_set_o[j]                              ),
                   .data_add_o         ( data_add_o[j]                                 ),
                   .data_wen_o         ( data_wen_o[j]                                 ),
                   .data_wdata_o       ( data_wdata_o[j]                               ),
@@ -177,25 +201,27 @@ module XBAR_BRIDGE
                   // GEN VALID_SIGNALS in the response path
                   .data_r_valid_CH0_o ( data_r_valid_from_MEM[j][N_CH0-1:0]           ), // N_CH0 Bit
                   .data_r_valid_CH1_o ( data_r_valid_from_MEM[j][N_CH0+N_CH1-1:N_CH0] ), // N_CH1 Bit
-                  .clk(clk),
-                  .rst_n(rst_n)
+                  .clk                ( clk   ),
+                  .rst_n              ( rst_n )
               );
            end
            else
            begin : CH0_ONLY
               RequestBlock1CH_BRIDGE
               #(
-                  .ADDR_WIDTH        ( ADDR_WIDTH               ),
-                  .N_CH0             ( N_CH0                    ),
-                  .ID_WIDTH          ( ID_WIDTH                 ),
-                  .DATA_WIDTH        ( DATA_WIDTH               ),
-                  .AUX_WIDTH         ( AUX_WIDTH                ),
-                  .BE_WIDTH          ( BE_WIDTH                 )
+                  .ADDR_WIDTH        ( ADDR_WIDTH                  ),
+                  .N_CH0             ( N_CH0                       ),
+                  .ID_WIDTH          ( ID_WIDTH                    ),
+                  .DATA_WIDTH        ( DATA_WIDTH                  ),
+                  .AUX_WIDTH         ( AUX_WIDTH                   ),
+                  .BE_WIDTH          ( BE_WIDTH                    ),
+                  .USE_TEST_SET      (  (j > 2) ? "TRUE" : "FALSE" )
               )
               i_RequestBlock1CH_BRIDGE
               (
                 // CHANNEL CH0 --> (example: Used for xP70s)
                 .data_req_CH0_i      ( data_req_to_MEM[j]       ),
+                .is_test_and_set_i   ( is_test_and_set          ),
                 .data_add_CH0_i      ( data_add_i               ),
                 .data_wen_CH0_i      ( data_wen_i               ),
                 .data_wdata_CH0_i    ( data_wdata_i             ),
@@ -207,6 +233,7 @@ module XBAR_BRIDGE
                 // -----------------             MEMORY                    -------------------
                 // ---------------- RequestBlock OUTPUT (Connected to MEMORY) ----------------
                 .data_req_o          ( data_req_o[j]            ),
+                .data_ts_set_o       ( data_ts_set_o[j]         ),
                 .data_add_o          ( data_add_o[j]            ),
                 .data_wen_o          ( data_wen_o[j]            ),
                 .data_wdata_o        ( data_wdata_o[j]          ),
@@ -270,7 +297,7 @@ module XBAR_BRIDGE
 
                       // Inputs form MAsters
                       .data_req_i      ( data_req_i[j]              ),
-                      .destination_i   ( destination_OH[j]          ),
+                      .destination_i   ( destination_OH_merged[j]   ),
                       .data_gnt_o      ( data_gnt_o[j]              ),  // grant to master port
                       .data_gnt_i      ( data_gnt_to_MASTER[j]      ), // Signal from Request Block
 

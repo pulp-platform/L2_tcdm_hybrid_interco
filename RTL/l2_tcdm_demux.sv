@@ -59,8 +59,8 @@ module l2_tcdm_demux
     input  logic                         data_r_opc_i_PER,
     input  logic [AUX_WIDTH-1:0]         data_r_aux_i_PER,
 
-    input  logic [N_PERIPHS-1:0][ADDR_WIDTH-1:0] PER_START_ADDR,
-    input  logic [N_PERIPHS-1:0][ADDR_WIDTH-1:0] PER_END_ADDR,
+    input  logic [N_PERIPHS+1:0][ADDR_WIDTH-1:0] PER_START_ADDR,
+    input  logic [N_PERIPHS+1:0][ADDR_WIDTH-1:0] PER_END_ADDR,
 
     input  logic [ADDR_WIDTH-1:0]              TCDM_START_ADDR,
     input  logic [ADDR_WIDTH-1:0]              TCDM_END_ADDR
@@ -69,10 +69,10 @@ module l2_tcdm_demux
 
     enum logic [1:0] {IDLE, ON_TCDM, ON_PER, ERROR } CS, NS;
 
-    logic [N_PERIPHS:0] [ADDR_WIDTH-1:0]                  ADDR_START;
-    logic [N_PERIPHS:0] [ADDR_WIDTH-1:0]                  ADDR_END;
+    logic [N_PERIPHS+2:0] [ADDR_WIDTH-1:0]                ADDR_START;
+    logic [N_PERIPHS+2:0] [ADDR_WIDTH-1:0]                ADDR_END;
 
-    logic [N_PERIPHS:0]                                   destination_OH;
+    logic [N_PERIPHS+2:0]                                 destination_OH;
 
     assign ADDR_START = { TCDM_START_ADDR , PER_START_ADDR };
     assign ADDR_END   = { TCDM_END_ADDR   , PER_END_ADDR   };
@@ -98,7 +98,7 @@ module l2_tcdm_demux
     begin
           destination_OH = '0;
 
-          for (int unsigned x=0; x<N_PERIPHS+1; x++)
+          for (int unsigned x=0; x<N_PERIPHS+3; x++)
           begin
              if( (data_add_i >= ADDR_START[x]) && (data_add_i < ADDR_END[x]) )
              begin
@@ -150,7 +150,7 @@ module l2_tcdm_demux
             begin
                 if(data_req_i)
                 begin
-                    if ( destination_OH[N_PERIPHS] == 1'b1 ) // ON TCDM
+                    if ( destination_OH[N_PERIPHS+2] == 1'b1 ) // ON TCDM
                     begin
                         data_req_o_TDCM = 1'b1;
                         data_gnt_o      = data_gnt_i_TDCM;
@@ -165,7 +165,7 @@ module l2_tcdm_demux
                     end
                     else
 
-                        if( |destination_OH[N_PERIPHS-1:0] == 1'b1) // on BRIDGES
+                        if( |destination_OH[N_PERIPHS+1:0] == 1'b1) // on BRIDGES
                         begin
                             data_req_o_PER = 1'b1;
                             data_gnt_o     = data_gnt_i_PER;
@@ -199,7 +199,7 @@ module l2_tcdm_demux
 
                 if(data_req_i)
                 begin
-                    if ( destination_OH[N_PERIPHS] == 1'b1 ) // ON TCDM
+                    if ( destination_OH[N_PERIPHS+2] == 1'b1 ) // ON TCDM
                     begin
                         data_req_o_TDCM = 1'b1;
                         data_gnt_o      = data_gnt_i_TDCM;
@@ -214,7 +214,7 @@ module l2_tcdm_demux
                     end
                     else
 
-                        if( |destination_OH[N_PERIPHS-1:0] == 1'b1) // on BRIDGES
+                        if( |destination_OH[N_PERIPHS+1:0] == 1'b1) // on BRIDGES
                         begin
                             data_req_o_PER = 1'b1;
                             data_gnt_o     = data_gnt_i_PER;
@@ -251,7 +251,7 @@ module l2_tcdm_demux
 
                         if(data_req_i)
                         begin
-                            if ( destination_OH[N_PERIPHS] == 1'b1 ) // ON TCDM
+                            if ( destination_OH[N_PERIPHS+2] == 1'b1 ) // ON TCDM
                             begin
                                 data_req_o_TDCM = 1'b1;
                                 data_gnt_o      = data_gnt_i_TDCM;
@@ -266,7 +266,7 @@ module l2_tcdm_demux
                             end
                             else
 
-                                if( |destination_OH[N_PERIPHS-1:0] == 1'b1) // on BRIDGES
+                                if( |destination_OH[N_PERIPHS+1:0] == 1'b1) // on BRIDGES
                                 begin
                                     data_req_o_PER = 1'b1;
                                     data_gnt_o     = data_gnt_i_PER;

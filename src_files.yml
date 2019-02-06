@@ -35,4 +35,5 @@ soc_interconnect:
     RTL/XBAR_BRIDGE/ResponseTree_BRIDGE.sv,
     RTL/XBAR_BRIDGE/RR_Flag_Req_BRIDGE.sv,
     RTL/XBAR_BRIDGE/XBAR_BRIDGE.sv,
+    RTL/XBAR_BRIDGE/TestAndSet_BRIDGE.sv,
   ]

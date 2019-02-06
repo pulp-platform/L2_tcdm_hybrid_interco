@@ -100,7 +100,6 @@ module ArbitrationTree_BRIDGE
                   .data_be_o     ( data_be_o       ),
                   .data_aux_o    ( data_aux_o       ),
                   .data_gnt_i    ( data_gnt_i      )
-
                   );
       end // END OF MASTER  == 2
 
@@ -110,15 +109,14 @@ module ArbitrationTree_BRIDGE
           //// ---------------------------------------------------------------------- ////
           //// -------               REQ ARBITRATION TREE WIRES           ----------- ////
           //// ---------------------------------------------------------------------- ////
-          logic[N_WIRE-1:0] [DATA_WIDTH-1:0]      data_wdata_LEVEL;
-          logic[N_WIRE-1:0] [ADDR_WIDTH-1:0]      data_add_LEVEL;
-          logic[N_WIRE-1:0]                       data_req_LEVEL;
-          logic[N_WIRE-1:0]                       data_wen_LEVEL;
-          logic[N_WIRE-1:0] [ID_WIDTH-1:0]        data_ID_LEVEL;
-          logic[N_WIRE-1:0] [BE_WIDTH-1:0]        data_be_LEVEL;
-          logic[N_WIRE-1:0] [AUX_WIDTH-1:0]       data_aux_LEVEL;
-
-          logic                       data_gnt_LEVEL[N_WIRE-1:0];
+          logic [N_WIRE-1:0][DATA_WIDTH-1:0]      data_wdata_LEVEL;
+          logic [N_WIRE-1:0][ADDR_WIDTH-1:0]      data_add_LEVEL;
+          logic [N_WIRE-1:0]                      data_req_LEVEL;
+          logic [N_WIRE-1:0]                      data_wen_LEVEL;
+          logic [N_WIRE-1:0][ID_WIDTH-1:0]        data_ID_LEVEL;
+          logic [N_WIRE-1:0][BE_WIDTH-1:0]        data_be_LEVEL;
+          logic [N_WIRE-1:0][AUX_WIDTH-1:0]       data_aux_LEVEL;
+          logic [N_WIRE-1:0]                      data_gnt_LEVEL;
 
             for(j=0; j < LOG_MASTER; j++) // Iteration for the number of the stages minus one
             begin : STAGE
