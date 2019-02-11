@@ -480,7 +480,6 @@ logic MPU_data_W_size_int, MPU_data_R_size_int;
       .L2_BASE         ( `SOC_L2_PRIV0_START_ADDR  ), //= `SOC_L2_PRIV0_START_ADDR,
       .ROM_BASE        ( `SOC_ROM_START_ADDR  ), //= `SOC_ROM_START_ADDR,
       .APB_BASE        ( `SOC_APB_START_ADDR  ), //= `SOC_APB_START_ADDR,
-      .MRAM_BASE       ( `SOC_MRAM_START_ADDR  ), //= `SOC_MRAM_START_ADDR,
       .CLUSTER_BASE    ( `CLUSTER_DATA_START_ADDR  ), //= `CLUSTER_DATA_START_ADDR,
 
       .LSB_CHECK       ( 6              ), //= 6,
@@ -615,7 +614,6 @@ logic MPU_data_W_size_int, MPU_data_R_size_int;
       .L2_BASE         ( `SOC_L2_PRIV0_START_ADDR  ), //= `SOC_L2_PRIV0_START_ADDR,
       .ROM_BASE        ( `SOC_ROM_START_ADDR  ), //= `SOC_ROM_START_ADDR,
       .APB_BASE        ( `SOC_APB_START_ADDR  ), //= `SOC_APB_START_ADDR,
-      .MRAM_BASE       ( `SOC_MRAM_START_ADDR  ), //= `SOC_MRAM_START_ADDR,
       .CLUSTER_BASE    ( `CLUSTER_DATA_START_ADDR  ), //= `CLUSTER_DATA_START_ADDR,
 
       .LSB_CHECK       ( 6              ), //= 6,
