@@ -14,7 +14,8 @@ module tcdm_address_filter
 
    parameter                LSB_CHECK      = 6,
    parameter                MSB_CHECK      = 31,
-   parameter                ENABLE_ALIAS_L2 = "FALSE"   
+   parameter                ENABLE_ALIAS_L2 = "FALSE",
+   parameter                ENABLE_TEST_AND_SET = "TRUE"
 )
 (
     input  logic                     clk,
@@ -49,17 +50,44 @@ module tcdm_address_filter
 
    genvar i;
    logic [ADDR_WIDTH-1:0]    add_int;
+   // in case of test and set, out address must not be modified
+   logic [ADDR_WIDTH-1:0]    add_int_ts;
    
-   // remap ALIAS region to absolute region
+   // remap ALIAS And T&S regions to absolute region
    generate
-      if( ENABLE_ALIAS_L2 == "TRUE")
+      if( ENABLE_ALIAS_L2 == "TRUE" )
       begin
-        assign add_int[19:0]  =   add_i[19:0];
-        assign add_int[31:20] = ( add_i[31:20] == 12'h000 ) ? 12'h1C0 : add_i[31:20];
+          // remap also the test and set area
+          if(ENABLE_TEST_AND_SET == "TRUE")
+          begin
+            assign add_int[19:0]  =   add_i[19:0];
+            assign add_int[31:20] = ( add_i[31:20] == 12'h000 ) ? 12'h1C0 : ( add_i[31:16] == 16'h1E00 ) ? 12'h1C0 : add_i[31:20];
+            // if we folded 1E00 to 1C0X for mpu, restore correct address for ts
+            assign add_int_ts = ( add_i[31:16] == 16'h1E00 ) ? add_i : add_int;
+          end
+          else
+          begin
+            assign add_int[19:0]  =   add_i[19:0];
+            assign add_int[31:20] = ( add_i[31:20] == 12'h000 ) ? 12'h1C0 : add_i[31:20];
+            // t&s isn't enabled, don't care
+            assign add_int_ts = add_int;
+          end
       end
       else
       begin
-        assign add_int = add_i;
+          if(ENABLE_TEST_AND_SET == "TRUE")
+          begin
+            assign add_int[15:0]  =   add_i[15:0];
+            assign add_int[31:16] = ( add_i[31:16] == 16'h1E00 ) ? 16'h1C00 : add_i[31:16];
+            // if we folded 1E00 to 1C0X for mpu, restore correct address for ts
+            assign add_int_ts = ( add_i[31:16] == 16'h1E00 ) ? add_i : add_int;
+          end
+          else
+          begin
+            assign add_int = add_i;
+            // t&s isn't enabled, don't care
+            assign add_int_ts = add_int;
+          end
       end
    endgenerate
 
@@ -170,8 +198,7 @@ module tcdm_address_filter
       end
    end
 
-
-    assign add_o     = add_int;
+    assign add_o     = (ENABLE_TEST_AND_SET == "TRUE") ? add_int_ts : add_int;
     assign wdata_o   = wdata_i;
     assign be_o      = be_i;
     assign wen_o     = wen_i;
