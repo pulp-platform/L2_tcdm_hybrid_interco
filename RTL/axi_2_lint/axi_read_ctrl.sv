@@ -84,7 +84,6 @@ module axi_read_ctrl
     logic [2:0]                                       ARSIZE_REG;
 
     assign MEM_D_o = '0;
-    assign MEM_BE_o = '0;
 
 
     always_ff @(posedge clk or negedge rst_n)
@@ -133,7 +132,7 @@ module axi_read_ctrl
         RLAST_o  = 1'b0;
         RRESP_o  = `OKAY;
 
-
+        MEM_BE_o  = 4'b0000;
         MEM_CEN_o = 1'b1;
         MEM_WEN_o = 1'b1;
         MEM_A_o   = ARADDR_i;
@@ -152,6 +151,44 @@ module axi_read_ctrl
             begin
                 valid_o   = ARVALID_i;
                 MEM_CEN_o = ~ARVALID_i;
+                case(ARSIZE_i)
+                0: 
+                begin
+                    if(ARADDR_i[1])
+                    begin
+                        if(ARADDR_i[1])
+                        begin
+                            MEM_BE_o = 4'b1000;
+                        end
+                        else
+                        begin
+                            MEM_BE_o = 4'b0100;
+                        end
+                    end
+                    else
+                    begin
+                        if(ARADDR_i[1])
+                        begin
+                            MEM_BE_o = 4'b0010;
+                        end
+                        else
+                        begin
+                            MEM_BE_o = 4'b0001;
+                        end
+                    end
+                end
+                1: 
+                begin
+                    if(ARADDR_i[1]) 
+                        MEM_BE_o = 4'b1100; 
+                    else 
+                        MEM_BE_o = 4'b0011;
+                end 
+                default:
+                begin 
+                    MEM_BE_o = 4'b1111;
+                end
+                endcase
 
                 ARREADY_o = grant_i;
 
@@ -202,7 +239,44 @@ module axi_read_ctrl
                                 ARREADY_o = grant_i;
                                 valid_o   = ARVALID_i;
                                 MEM_CEN_o = ~ARVALID_i;
-
+                                                case(ARSIZE_i)
+                0: 
+                begin
+                    if(ARADDR_i[1])
+                    begin
+                        if(ARADDR_i[1])
+                        begin
+                            MEM_BE_o = 4'b1000;
+                        end
+                        else
+                        begin
+                            MEM_BE_o = 4'b0100;
+                        end
+                    end
+                    else
+                    begin
+                        if(ARADDR_i[1])
+                        begin
+                            MEM_BE_o = 4'b0010;
+                        end
+                        else
+                        begin
+                            MEM_BE_o = 4'b0001;
+                        end
+                    end
+                end
+                1: 
+                begin
+                    if(ARADDR_i[1]) 
+                        MEM_BE_o = 4'b1100; 
+                    else 
+                        MEM_BE_o = 4'b0011;
+                end 
+                default:
+                begin 
+                    MEM_BE_o = 4'b1111;
+                end
+                endcase
                                 if(ARVALID_i)
                                 begin
                                     sample_ctrl = 1'b1;
@@ -260,6 +334,44 @@ module axi_read_ctrl
                         ARREADY_o = grant_i;
                         valid_o = ARVALID_i;
                         MEM_CEN_o = ~ARVALID_i;
+                case(ARSIZE_i)
+                0: 
+                begin
+                    if(ARADDR_i[1])
+                    begin
+                        if(ARADDR_i[1])
+                        begin
+                            MEM_BE_o = 4'b1000;
+                        end
+                        else
+                        begin
+                            MEM_BE_o = 4'b0100;
+                        end
+                    end
+                    else
+                    begin
+                        if(ARADDR_i[1])
+                        begin
+                            MEM_BE_o = 4'b0010;
+                        end
+                        else
+                        begin
+                            MEM_BE_o = 4'b0001;
+                        end
+                    end
+                end
+                1: 
+                begin
+                    if(ARADDR_i[1]) 
+                        MEM_BE_o = 4'b1100; 
+                    else 
+                        MEM_BE_o = 4'b0011;
+                end 
+                default:
+                begin 
+                    MEM_BE_o = 4'b1111;
+                end
+                endcase
 
                         /////////////////////////////////////////
                         if(ARVALID_i)
@@ -318,7 +430,8 @@ module axi_read_ctrl
                             sample_ctrl = 1'b0;
                             MEM_CEN_o   = 1'b0;
                             valid_o     = 1'b1;
-
+                             
+                            MEM_BE_o = 4'b1111;
 
                             if(grant_i)
                             begin
@@ -357,6 +470,8 @@ module axi_read_ctrl
             WAIT_BURST_GRANT:
             begin
                 MEM_CEN_o   = 1'b0;
+                MEM_BE_o    = 4'b1111;
+
                 MEM_A_o     = ARADDR_REG+(CountBurst_CS<<3);
                 MEM_size_o  = (ARSIZE_REG == 3'b011);
                 valid_o     = 1'b1;
@@ -396,6 +511,8 @@ module axi_read_ctrl
                 begin
                         valid_o = 1'b1;
                         MEM_CEN_o = 1'b0;
+                        MEM_BE_o = 4'b1111;
+
                         /////////////////////////////////////////
                         if(grant_i)
                         begin
@@ -436,6 +553,45 @@ module axi_read_ctrl
                         begin
                                 valid_o   = ARVALID_i;
                                 MEM_CEN_o = ~ARVALID_i;
+
+                                                case(ARSIZE_i)
+                0: 
+                begin
+                    if(ARADDR_i[1])
+                    begin
+                        if(ARADDR_i[1])
+                        begin
+                            MEM_BE_o = 4'b1000;
+                        end
+                        else
+                        begin
+                            MEM_BE_o = 4'b0100;
+                        end
+                    end
+                    else
+                    begin
+                        if(ARADDR_i[1])
+                        begin
+                            MEM_BE_o = 4'b0010;
+                        end
+                        else
+                        begin
+                            MEM_BE_o = 4'b0001;
+                        end
+                    end
+                end
+                1: 
+                begin
+                    if(ARADDR_i[1]) 
+                        MEM_BE_o = 4'b1100; 
+                    else 
+                        MEM_BE_o = 4'b0011;
+                end 
+                default:
+                begin 
+                    MEM_BE_o = 4'b1111;
+                end
+                endcase
 
                                 ARREADY_o = grant_i;
 
@@ -496,6 +652,45 @@ module axi_read_ctrl
                 begin
                         valid_o   = ARVALID_i;
                         MEM_CEN_o = ~ARVALID_i;
+
+                                        case(ARSIZE_i)
+                0: 
+                begin
+                    if(ARADDR_i[1])
+                    begin
+                        if(ARADDR_i[1])
+                        begin
+                            MEM_BE_o = 4'b1000;
+                        end
+                        else
+                        begin
+                            MEM_BE_o = 4'b0100;
+                        end
+                    end
+                    else
+                    begin
+                        if(ARADDR_i[1])
+                        begin
+                            MEM_BE_o = 4'b0010;
+                        end
+                        else
+                        begin
+                            MEM_BE_o = 4'b0001;
+                        end
+                    end
+                end
+                1: 
+                begin
+                    if(ARADDR_i[1]) 
+                        MEM_BE_o = 4'b1100; 
+                    else 
+                        MEM_BE_o = 4'b0011;
+                end 
+                default:
+                begin 
+                    MEM_BE_o = 4'b1111;
+                end
+                endcase
 
                         ARREADY_o = grant_i;
 
