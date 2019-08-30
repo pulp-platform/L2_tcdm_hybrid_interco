@@ -4,6 +4,7 @@ soc_interconnect:
   ]
   files: [
     RTL/l2_tcdm_demux.sv,
+    RTL/l2_tcdm_demux_XIP.sv,
     RTL/lint_2_apb.sv,
     RTL/lint_2_axi.sv,
     RTL/axi_2_lint/axi64_2_lint32.sv,
