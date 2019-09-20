@@ -103,7 +103,7 @@ module XBAR_L2
 
 
       for(j=0;j<N_SLAVE;j++)
-      begin
+      begin : GEN_REQUEST_BLOCKS
               if(N_CH1 == 0)
               begin :  CH0_ONLY
                     RequestBlock_L2_1CH

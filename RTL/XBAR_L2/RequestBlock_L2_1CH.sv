@@ -86,8 +86,8 @@ module RequestBlock_L2_1CH
               assign data_be_CH0_int       = {  data_be_CH0_dummy  ,      data_be_i      };
               assign data_ID_CH0_int       = {  data_ID_CH0_dummy  ,      data_ID_i      };
 
-
-              for(genvar j=0; j<N_CH0; j++)
+              genvar j;
+              for(j=0; j<N_CH0; j++)
               begin : _MERGING_CH0_DUMMY_PORTS_OUT_
                 assign data_gnt_o[j]     = data_gnt_CH0_int[j];
               end
