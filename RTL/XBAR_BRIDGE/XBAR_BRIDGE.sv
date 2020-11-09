@@ -96,7 +96,7 @@ module XBAR_BRIDGE
     generate
 
         for (k=0; k<N_CH0+N_CH1; k++)
-        begin
+        begin : GEN_XBAR_BRIDGE_1
 
             always @(*)
             begin
@@ -114,7 +114,7 @@ module XBAR_BRIDGE
 
 
           for (j=0; j<N_SLAVE; j++)
-            begin
+            begin : GEN_XBAR_BRIDGE_2
               assign data_r_valid_to_MASTER[k][j] = data_r_valid_from_MEM[j][k];
               assign data_req_to_MEM[j][k]        = data_req_from_MASTER[k][j];
               assign data_gnt_to_MASTER[k][j]     = data_gnt_from_MEM[j][k];

@@ -129,7 +129,8 @@ module RequestBlock_L2_2CH
                 assign data_ID_CH0_int       = {  data_ID_CH0_dummy  ,      data_ID_CH0_i      };
 
 
-                for(genvar j=0; j<N_CH0; j++)
+                genvar j;
+                for(j=0; j<N_CH0; j++)
                 begin : _MERGING_CH0_DUMMY_PORTS_OUT_
                   assign data_gnt_CH0_o[j] = data_gnt_CH0_int[j];
                 end
@@ -175,7 +176,8 @@ module RequestBlock_L2_2CH
               assign data_ID_CH1_int       = {  data_ID_CH1_dummy  ,      data_ID_CH1_i      };
 
 
-              for(genvar j=0; j<N_CH1; j++)
+              genvar j;
+              for(j=0; j<N_CH1; j++)
               begin : _MERGING_CH1_DUMMY_PORTS_OUT_
                 assign data_gnt_CH1_o[j]     = data_gnt_CH1_int[j];
               end
