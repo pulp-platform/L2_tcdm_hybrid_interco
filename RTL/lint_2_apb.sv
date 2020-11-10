@@ -61,9 +61,7 @@ module lint_2_apb
    logic [DATA_WIDTH-1:0]     master_PWDATA_Q;
    logic                      master_PWRITE_Q;
 
-   assign master_PADDR  = master_PADDR_Q ;
-   assign master_PWDATA = master_PWDATA_Q;
-   assign master_PWRITE = master_PWRITE_Q;
+
 
    always_ff @(posedge clk or negedge rst_n)
    begin
@@ -110,6 +108,10 @@ module lint_2_apb
       master_PSEL    = 1'b0;
       master_PENABLE = 1'b0;
       sample_req_info = 1'b0;
+      master_PADDR  = master_PADDR_Q ;
+      master_PWDATA = master_PWDATA_Q;
+      master_PWRITE = master_PWRITE_Q;
+
 
       data_gnt_o      = 1'b0;
 
@@ -137,7 +139,11 @@ module lint_2_apb
          if(data_req_i)
          begin
             sample_req_info = 1'b1;
+            master_PSEL    = 1'b1;
             NS = WAIT_PREADY;
+            master_PADDR  = data_add_i ;
+            master_PWDATA = data_wdata_i;
+            master_PWRITE = ~data_wen_i;
          end
          else
          begin
